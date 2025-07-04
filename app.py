@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from typing import Optional, Literal
 from pydantic import BaseModel
 
-from predict import predict_price
+from predict.predict import predict_price
 
 app = FastAPI()
 
