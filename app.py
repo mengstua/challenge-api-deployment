@@ -5,13 +5,16 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
 from predict.predict import predict_price
-from preprocessing.preprocessing import data_pre_processing
+from preprocessing.preprocessing import pre_process_data
 
 app = FastAPI()
 
+
 class PropertyData(BaseModel):
     area: int
-    property_type: Literal['APARTMENT', 'HOUSE', 'OTHERS'] = Field(..., alias="property-type")
+    property_type: Literal["APARTMENT", "HOUSE", "OTHERS"] = Field(
+        ..., alias="property-type"
+    )
     rooms_number: int = Field(..., alias="rooms-number")
     zip_code: int = Field(..., alias="zip-code")
     land_area: Optional[int] = Field(None, alias="land-area")
@@ -25,10 +28,13 @@ class PropertyData(BaseModel):
     terrace: Optional[bool] = None
     terrace_area: Optional[int] = Field(None, alias="terrace-area")
     facades_number: Optional[int] = Field(None, alias="facades-number")
-    building_state: Optional[Literal['NEW', 'GOOD', 'TO RENOVATE', 'JUST RENOVATED', 'TO REBUILD']] = Field(None, alias="building-state")
+    building_state: Optional[
+        Literal["NEW", "GOOD", "TO RENOVATE", "JUST RENOVATED", "TO REBUILD"]
+    ] = Field(None, alias="building-state")
 
     class Config:
         allow_population_by_field_name = True
+
 
 @app.get("/")
 async def root():
@@ -41,45 +47,41 @@ async def predict_info():
     return data_format_json
 
 
-data_format_json =  {
-  "Format of your JSON input for POST requests:": {
-    "area": "int",
-    "property-type": "APARTMENT | HOUSE | OTHERS",
-    "rooms-number": "int",
-    "zip-code": "int",
-    "land-area (optional)": "int",
-    "garden (optional)": "bool",
-    "garden-area (optional)": "int",
-    "equipped-kitchen (optional)": "bool",
-    "full-address (optional)": "str",
-    "swimming-pool (optional)": "bool",
-    "furnished (optional)": "bool",
-    "open-fire (optional)": "bool",
-    "terrace (optional)": "bool",
-    "terrace-area (optional)": "int",
-    "facades-number (optional)": "int",
-    "building-state (optional)": 
-      "NEW | GOOD | TO RENOVATE | JUST RENOVATED | TO REBUILD"
-  }
+data_format_json = {
+    "Format of your JSON input for POST requests:": {
+        "area": "int",
+        "property-type": "APARTMENT | HOUSE | OTHERS",
+        "rooms-number": "int",
+        "zip-code": "int",
+        "land-area (optional)": "int",
+        "garden (optional)": "bool",
+        "garden-area (optional)": "int",
+        "equipped-kitchen (optional)": "bool",
+        "full-address (optional)": "str",
+        "swimming-pool (optional)": "bool",
+        "furnished (optional)": "bool",
+        "open-fire (optional)": "bool",
+        "terrace (optional)": "bool",
+        "terrace-area (optional)": "int",
+        "facades-number (optional)": "int",
+        "building-state (optional)": "NEW | GOOD | TO RENOVATE | JUST RENOVATED | TO REBUILD",
+    }
 }
 
-@app.post("/predict")
-async def predict(data:PropertyData ):
-    print("Received data:", data)
-    data_dict = data.model_dump(by_alias=True)
-    print("Data as dict:", data_dict)
-    data_pre_processing(data_dict)
 
-    # transorm JSON to df
-    # call predict_price()
-    pass
+@app.post("/predict")
+async def predict(data: PropertyData):
+    data_dict = data.model_dump(by_alias=True)
+    pre_processed_data = pre_process_data(data_dict)
+    predict_price(pre_processed_data)
+
 
 # Custom handler for 422 errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     formatted_errors = []
-    
+
     def generate_custom_message(error, field):
         # Customize messages based on error type
         if error["type"] == "float_parsing":
@@ -88,20 +90,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             return f"Required field missing: {field}."
         # Add more cases as needed
         return f"Check field -- {field} -- for errors."
-    
 
     for error in errors:
         field = error["loc"][1]
-        #message = error["msg"]
+        # message = error["msg"]
         custom_message = generate_custom_message(error, field)
-        formatted_errors.append({
-            #"field": field,
-            #"message": message,
-            #"error_type": error["type"],
-            custom_message
-        })
-    
-    return JSONResponse(
-        status_code=422,
-        content={"errors": f"{formatted_errors}" }
+        formatted_errors.append(
+            {
+                # "field": field,
+                # "message": message,
+                # "error_type": error["type"],
+                custom_message
+            }
         )
+
+    return JSONResponse(status_code=422, content={"errors": f"{formatted_errors}"})
