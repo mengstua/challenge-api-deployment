@@ -1,14 +1,34 @@
-from fastapi import FastAPI
 from typing import Optional, Literal
-from pydantic import BaseModel
+from fastapi import FastAPI, Request
+from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 
-from predict import predict_price
+from predict.predict import predict_price
+from preprocessing.preprocessing import data_pre_processing
 
 app = FastAPI()
 
 class PropertyData(BaseModel):
-# TODO
-    pass
+    area: int
+    property_type: Literal['APARTMENT', 'HOUSE', 'OTHERS'] = Field(..., alias="property-type")
+    rooms_number: int = Field(..., alias="rooms-number")
+    zip_code: int = Field(..., alias="zip-code")
+    land_area: Optional[int] = Field(None, alias="land-area")
+    garden: Optional[bool] = None
+    garden_area: Optional[int] = Field(None, alias="garden-area")
+    equipped_kitchen: Optional[bool] = Field(None, alias="equipped-kitchen")
+    full_address: Optional[str] = Field(None, alias="full-address")
+    swimming_pool: Optional[bool] = Field(None, alias="swimming-pool")
+    furnished: Optional[bool] = None
+    open_fire: Optional[bool] = Field(None, alias="open-fire")
+    terrace: Optional[bool] = None
+    terrace_area: Optional[int] = Field(None, alias="terrace-area")
+    facades_number: Optional[int] = Field(None, alias="facades-number")
+    building_state: Optional[Literal['NEW', 'GOOD', 'TO RENOVATE', 'JUST RENOVATED', 'TO REBUILD']] = Field(None, alias="building-state")
+
+    class Config:
+        allow_population_by_field_name = True
 
 @app.get("/")
 async def root():
@@ -45,7 +65,43 @@ data_format_json =  {
 
 @app.post("/predict")
 async def predict(data:PropertyData ):
+    print("Received data:", data)
+    data_dict = data.model_dump(by_alias=True)
+    print("Data as dict:", data_dict)
+    data_pre_processing(data_dict)
 
     # transorm JSON to df
     # call predict_price()
     pass
+
+# Custom handler for 422 errors
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    formatted_errors = []
+    
+    def generate_custom_message(error, field):
+        # Customize messages based on error type
+        if error["type"] == "float_parsing":
+            return "expected numbers, got string in {field}"
+        elif error["type"] == "missing":
+            return f"Required field missing: {field}."
+        # Add more cases as needed
+        return f"Check field -- {field} -- for errors."
+    
+
+    for error in errors:
+        field = error["loc"][1]
+        #message = error["msg"]
+        custom_message = generate_custom_message(error, field)
+        formatted_errors.append({
+            #"field": field,
+            #"message": message,
+            #"error_type": error["type"],
+            custom_message
+        })
+    
+    return JSONResponse(
+        status_code=422,
+        content={"errors": f"{formatted_errors}" }
+        )

@@ -44,7 +44,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         if error["type"] == "float_parsing":
             return "expected numbers, got string in {field}"
         elif error["type"] == "missing":
-            return f"3 fields expected (salary, bonus, taxes). You forgot: {field}."
+            return f"Required field missing: {field}."
         # Add more cases as needed
         return f"Check field -- {field} -- for errors."
     
