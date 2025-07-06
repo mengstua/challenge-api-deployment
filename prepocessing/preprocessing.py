@@ -123,7 +123,7 @@ class Immo_Preprocessing:
         # Pre processing EPC Score and Building condition
         oe = OrdinalEncoder(categories=[['A++', 'A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G']])
         self.df['epcscore_encoded'] = oe.fit_transform(self.df[['epcscore']])
-
+        
         oe2 = OrdinalEncoder(categories=[['AS_NEW','JUST_RENOVATED','GOOD','TO_BE_DONE_UP','TO_RENOVATE','TO_RESTORE']])
         self.df['buildingcondition_encoded'] = oe2.fit_transform(self.df[['buildingcondition']])
 

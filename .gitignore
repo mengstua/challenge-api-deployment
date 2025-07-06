@@ -1,2 +1,6 @@
 venv/
 venv
+__pycache__
+app.py
+predict/__pycache__
+prepocessing/__pycache__
