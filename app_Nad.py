@@ -1,11 +1,19 @@
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from typing import Optional, Literal
 import pandas as pd
+import os
 
 from predict.predict_Nad import predict_price
 from prepocessing.preprocessing import Immo_Preprocessing #####!!!!! spelling error: preposessing
 
-app = FastAPI()
+#app = FastAPI()
+
+# Set port to the env variable PORT to make it easy to choose the port on the server
+# If the Port env variable is not set, use port 8000
+PORT = os.environ.get("PORT", 8000)
+app = FastAPI(port=PORT)
 
 @app.get("/")
 async def root():
@@ -24,22 +32,22 @@ data_format_json =  { #  TO DO: adjust str, bool, etc according to my comments
     "property-type": "APARTMENT | HOUSE ",     # Removed | OTHERS - not in our model!   
     "rooms-number": "int",
     "zip-code": "int",
-    "land-area (optional)": "int",
-    "garden (optional)": "bool",   # 1, 0, or NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains!
-    "garden-area (optional)": "int", # will be dropped
-    "equipped-kitchen (optional)": "bool", # will be dropped
-    "full-address (optional)": "str", # will be dropped
-    "swimming-pool (optional)": "bool", # 1, 0, or NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains!
-    "furnished (optional)": "bool", # will be dropped
-    "open-fire (optional)": "bool", # will be dropped
-    "terrace (optional)": "bool", # 1, 0, or NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains!
-    "terrace-area (optional)": "int", # will be dropped
-    "facades-number (optional)": "int", # will be dropped
-    "building-state (optional)": 
+    " land-area (optional)": "int",  # If absent- will be replaced with 0.
+    " garden (optional)": "bool",   # 1, 0, or NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains! If absent- will be replaced with 0.
+    " garden-area (optional)": "int", # will be dropped, any value or even absent 
+    " equipped-kitchen (optional)": "bool", # will be dropped, any value or even absent
+    " full-address (optional)": "str", # will be dropped, any value or even absent
+    " swimming-pool (optional)": "bool", # 1, 0, or NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains! If absent- will be replaced with 0.
+    " furnished (optional)": "bool", # will be dropped, any value or even absent
+    " open-fire (optional)": "bool", # will be dropped, any value or even absent
+    " terrace (optional)": "bool", # 1, 0, or NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains! If absent- will be replaced with 0.
+    " terrace-area (optional)": "int", # will be dropped, any value or even absent
+    " facades-number (optional)": "int", # will be dropped, any value or even absent
+    " building-state (optional)": # if absent- will be replaced with 'GOOD'
      "AS_NEW | JUST_RENOVATED | GOOD | TO_BE_DONE_UP | TO_RENOVATE | TO_RESTORE",  # Was: "NEW | GOOD | TO RENOVATE | JUST RENOVATED | TO REBUILD"
     "lift" : "int", # added, 1, 0, NaN (> 1 are also allowed but don't affect price it seems), otherwise preprocessing.py complains!
-    "parkingcountindoor" : "int", # added, 1, 0, or NaN, values > 0 (are converted to 1, <0 - to 0), otherwise preprocessing.py complains!
-    "parkingcountoutdoor" : "int", # added, 1, 0, or NaN, values > 0 (are converted to 1, <0 - to 0), otherwise preprocessing.py complains!
+    "parkingcountindoor" : "int", # added, 1, 0, or NaN (values > 0 are converted to 1, <0 - to 0), otherwise preprocessing.py complains!
+    "parkingcountoutdoor" : "int", # added, 1, 0, or NaN (values > 0 are converted to 1, <0 - to 0), otherwise preprocessing.py complains!
     "province" : "str", # added, should be 'Antwerp', 'East Flanders','Flemish Brabant', 'Limburg','West Flanders',
                                 # 'Walloon Brabant', 'Hainaut', 'Liège', 'Luxembourg', 'Namur', 'Brussels',
                                 #  but can be be anything incl. NaN as well
@@ -48,7 +56,7 @@ data_format_json =  { #  TO DO: adjust str, bool, etc according to my comments
   }
 }
 
-#################  Validate and process input JSON file
+#################  Process input JSON file
 
 @app.post("/predict")
 async def predict(request: Request):
@@ -68,6 +76,13 @@ async def predict(request: Request):
   # Fix column names
   df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
   # Rename columns according to preprocessing.py
+
+  if 'building-state' not in df.columns: df['building-state'] = "GOOD"
+  if 'terrace' not in df.columns: df['terrace'] = 0
+  if 'swimming-pool' not in df.columns: df['swimming-pool'] = 0
+  if 'garden' not in df.columns: df['garden'] = 0
+  if 'land-area' not in df.columns: df['land-area'] = 0
+
   df.rename(columns={ 'rooms-number': 'bedroomcount',      
                               'area': 'habitablesurface',
                      'property-type': 'type',
@@ -79,6 +94,8 @@ async def predict(request: Request):
                     'building-state': 'buildingcondition',
                               'lift': 'haslift'
                         }, inplace=True)
+  
+  print ("Ok now!!!!!!!!!!!")
   
   df_temp = df
   immo_Preprocessing = Immo_Preprocessing("data_cleaned.csv")
@@ -105,4 +122,6 @@ async def predict(request: Request):
   price_pred=predict_price(immo_Preprocessing.df)
 
   print("Predicted price: ", price_pred)
+  return{"price_pred" : price_pred}
+
 

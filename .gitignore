@@ -4,3 +4,4 @@ __pycache__
 app.py
 predict/__pycache__
 prepocessing/__pycache__
+data_cleaned.csv
