@@ -5,8 +5,8 @@ from typing import Optional, Literal
 import pandas as pd
 import os
 
-from predict.predict_Nad import Predict_Nad
 from prepocessing.preprocessing import Immo_Preprocessing #####!!!!! spelling error: preposessing
+from predict.predict_Nad import Predict_Nad
 
 #app = FastAPI()
 
