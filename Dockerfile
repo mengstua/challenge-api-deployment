@@ -8,6 +8,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Copy all the files in the current directory in /app
+COPY . .
 COPY . /app
 
 # Update pip
