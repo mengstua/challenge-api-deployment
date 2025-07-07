@@ -98,8 +98,8 @@ async def predict(request: Request):
   print ("Ok now!!!!!!!!!!!")
   
   df_temp = df
-  immo_Preprocessing = Immo_Preprocessing("data_cleaned.csv")
-  immo_Preprocessing.df=df_temp
+  immo_Preprocessing = Immo_Preprocessing("data_cleaned_Nad.csv") # We don't need the csv, but because I don't want to modify preprocessing.py, I need to give it some file.
+  immo_Preprocessing.df=df_temp # Here we replace df that was before populated from the csv to train the model, with our json input.
 
   immo_Preprocessing.fill_boolean_values()
   immo_Preprocessing.add_parking_col()
