@@ -1,6 +1,9 @@
 # Starts from the python 3.10 official docker image
 FROM python:3.11
 
+WORKDIR /app
+COPY . /app
+
 # Create a folder "app" at the root of the image
 RUN mkdir /app
 
