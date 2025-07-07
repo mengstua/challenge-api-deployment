@@ -8,6 +8,7 @@ import os
 from prepocessing.preprocessing import Immo_Preprocessing #####!!!!! spelling error: preposessing
 from predict.predict_Nad import Predict_Nad
 
+
 #app = FastAPI()
 
 # Set port to the env variable PORT to make it easy to choose the port on the server
