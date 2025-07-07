@@ -5,7 +5,7 @@ from typing import Optional, Literal
 import pandas as pd
 import os
 
-from predict.predict_Nad import predict_price
+from predict.predict_Nad import Predict_Nad
 from prepocessing.preprocessing import Immo_Preprocessing #####!!!!! spelling error: preposessing
 
 #app = FastAPI()
@@ -119,7 +119,7 @@ async def predict(request: Request):
 
   ############ Caterina- did you normalized your df before doing modeling? If yes, we need to normalise our input then! But what are norm. coeff-s???
 
-  price_pred=predict_price(immo_Preprocessing.df)
+  price_pred=Predict_Nad.predict_price(immo_Preprocessing.df)
 
   print("Predicted price: ", price_pred)
   return{"price_pred" : price_pred}
