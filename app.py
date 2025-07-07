@@ -99,9 +99,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         if error["type"] == "float_parsing":
             return "expected numbers, got string in {field}"
         elif error["type"] == "missing":
-            return f"Required field missing: {error["loc"] }."
+            return f"Required field missing: {error['loc'] }."
         # Add more cases as needed
-        return f"Check field -- {error["loc"] } -- for errors."
+        return f"Check field -- {error['loc'] } -- for errors."
 
     for error in errors:
         custom_message = generate_custom_message(error)
