@@ -72,8 +72,20 @@ data_format_json = {
 @app.post("/predict")
 async def predict(data: PropertyData):
     data_dict = data.model_dump(by_alias=True)
-    pre_processed_data = pre_process_data(data_dict)
-    predict_price(pre_processed_data)
+    try:
+        pre_processed_data = pre_process_data(data_dict)
+    except Exception as e:
+        return JSONResponse(
+            status_code=422,
+            content={"error": f"Value error: {str(e)}"}
+        )
+    prediction = predict_price(pre_processed_data)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "prediction": f"{int(prediction):,d}".replace(",", "."),
+            "status_code": 200,
+        })
 
 
 # Custom handler for 422 errors
@@ -82,24 +94,19 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     errors = exc.errors()
     formatted_errors = []
 
-    def generate_custom_message(error, field):
+    def generate_custom_message(error):
         # Customize messages based on error type
         if error["type"] == "float_parsing":
             return "expected numbers, got string in {field}"
         elif error["type"] == "missing":
-            return f"Required field missing: {field}."
+            return f"Required field missing: {error["loc"] }."
         # Add more cases as needed
-        return f"Check field -- {field} -- for errors."
+        return f"Check field -- {error["loc"] } -- for errors."
 
     for error in errors:
-        field = error["loc"][1]
-        # message = error["msg"]
-        custom_message = generate_custom_message(error, field)
+        custom_message = generate_custom_message(error)
         formatted_errors.append(
             {
-                # "field": field,
-                # "message": message,
-                # "error_type": error["type"],
                 custom_message
             }
         )

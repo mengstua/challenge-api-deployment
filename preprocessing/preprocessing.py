@@ -1,92 +1,10 @@
-import warnings
-
-warnings.filterwarnings("ignore")
-
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 
+pd.set_option('display.max_columns', None)  # Show all columns
 
-def cleaning_columns(self):
-    # Clean column names: remove whitespace, lower case, replace space by underscore
-    self.df.columns = self.df.columns.str.strip().str.lower().str.replace(" ", "_")
-
-    # Drop unused columns
-    self.df.drop(
-        columns=[
-            "unnamed:_0",
-            "url",
-            "id",
-            "monthlycost",
-            "hasbalcony",
-            "accessibledisabledpeople",
-            "bathroomcount",
-            "roomcount",
-            "hasattic",
-            "hasbasement",
-            "hasdressingroom",
-            "diningroomsurface",
-            "hasdiningroom",
-            "floorcount",
-            "streetfacadewidgth",
-            "floodzonetype",
-            "heatingtype",
-            "hasheatpump",
-            "hasvoltaicpanels",
-            "hasthermicpanels",
-            "kitchensurface",
-            "kitchentype",
-            "haslivingroom",
-            "livingroomsurface",
-            "gardenorientation",
-            "hasairconditioning",
-            "hasarmoreddoor",
-            "hasvisiophone",
-            "hasoffice",
-            "hasfireplace",
-            "terracesurface",
-            "terraceorientation",
-            "gardensurface",
-            "toiletcount",
-            "hasphotovoltaicpanels",
-            "streetfacadewidth",
-            "buildingconstructionyear",
-            "facedecount",
-            "landsurface",
-        ],
-        inplace=True,
-        errors="ignore",
-    )
-
-
-# Maybe reuse some of this logic to make sure the data passed is reasonable?
-def eliminate_outliers(self):
-    cols = ["bedroomcount", "habitablesurface", "price"]
-
-    for col in cols:
-        # 75th percentile
-        seventy_fifth = self.df[col].quantile(0.75)
-        # 25th percentile
-        twenty_fifth = self.df[col].quantile(0.25)
-        # Interquartile range
-        surface_iqr = seventy_fifth - twenty_fifth
-
-        # Upper threshold
-        upper = seventy_fifth + (1.5 * surface_iqr)
-        # Lower threshold
-        lower = twenty_fifth - (1.5 * surface_iqr)
-
-        outliers = self.df[(self.df[col] < lower) | (self.df[col] > upper)]
-
-    self.df = self.df[~self.df.index.isin(outliers.index)]
-
-    self.df = self.df[~self.df["habitablesurface"].isna()]
-    self.df["habitablesurface"] = self.df["habitablesurface"].astype(float)
-    self.df = self.df.drop(self.df[self.df["habitablesurface"] > 1500].index)
-    self.df = self.df.drop(self.df[self.df["bedroomcount"] > 20].index)
-
-
-def oe_ohe_processing(df):
+def encode_fields(df):
     oe2 = OrdinalEncoder(
         categories=[
             [
@@ -211,6 +129,7 @@ def transform_fields(df):
     df["hasterrace"] = df["terrace"].fillna(False).astype(bool)
     df["buildingcondition"] = (
         df["building-state"]
+        .fillna("TO_RENOVATE")
         .astype(str)
         .replace(
             {
@@ -221,11 +140,11 @@ def transform_fields(df):
         )
     )
     df["hasswimmingpool"] = df["swimming-pool"].fillna(False).astype(bool)
-    # We don't get these information from the user, so we set them to False
+    # If we don't get these information from the user, we set them to False
     df["haslift"] = False
     df['hasparking'] = False
 
-    df['epcscore_encoded'] = 3  # Default value for EPC score, as we don't have this information
+    df['epcscore_encoded'] = 3  # Default value for EPC score if we don't get it from the payload
     return df
 
 
@@ -235,24 +154,25 @@ def convert_boolean_values(df):
     ].astype(int)
     return df
 
+
+
 def sort_columns(df):
-    ordered_columns = ['bedroomcount', 'habitablesurface', 'haslift', 'hasgarden', 'hasswimmingpool',
-    'hasterrace', 'hasparking', 'epcscore_encoded', 'buildingcondition_encoded', 'region_Brussels', 'region_Flanders', 'region_Wallonia', 'type_encoded', 'latitude', 'longitude']
-    # sort the DataFrame columns based on the ordered_columns list
-    df = df[ordered_columns]
+    model_columns = ["bedroomcount","habitablesurface","haslift","hasgarden","hasswimmingpool","hasterrace","hasparking","epcscore_encoded","buildingcondition_encoded","region_Brussels","region_Flanders","region_Wallonia","type_encoded","latitude","longitude"
+]
+    # sort the DataFrame columns based on the model_columns list
+    df = df[model_columns]
     return df
 
 def pre_process_data(json):
-    df = pd.DataFrame([json])  # Convert JSON to DataFrame
+    df = pd.DataFrame([json])
     # we're only expecting one row
     df = df.loc[0:1]
     check_required_columns_data(df)
     add_region_column(df)
     df = transform_fields(df)
     df = convert_boolean_values(df)
-    df = oe_ohe_processing(df)
+    df = encode_fields(df)
     df = latitude_longitude_columns(df)
     df = drop_remaining_columns(df)
     df = sort_columns(df)
-    print(df[0:1])
     return df
