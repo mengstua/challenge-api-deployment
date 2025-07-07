@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 # Install dependencies from "requirements.txt"
 RUN pip install -r requirements.txt
 
-docker run -it challenge-api-deployment-Nadiya /bin/sh
+RUN -it hallenge-api-deployment-Nadiya /bin/sh
 python
 >>> from predict.predict_Nad import predict_price
 
