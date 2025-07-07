@@ -2,6 +2,9 @@ import pickle
 import pandas as pd
 
 class Predict_Nad:
+
+  def __init__(self):
+    print("Hello from Predict_Nad!")
     
   def predict_price(df):
       """Loads trained model, saves given dataframe (which was made from json POST request) in a csv,
