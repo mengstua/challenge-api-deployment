@@ -111,7 +111,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         if error["type"] == "missing":
             return f" ---You forgot to input: {field}."
         # Add more cases as needed
-        return f" ---Wrong type of input for: {field} - {error["msg"]}"  
+        return f" ---Wrong type of input for: {field} - {error['msg']}"  
           
     for error in errors:
       field = error["loc"]
