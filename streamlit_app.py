@@ -12,49 +12,44 @@ def show_prediction(prediction):
 
 if "show_prediction" not in st.session_state:
 
-    with st.form("my_form"):
-        col1, col2 = st.columns([2, 2])
-        with col1:
-            area = st.slider("Property size (m²)*", 15, 1000, 100)
+    with st.form("prediction_form"):
+        area = st.slider("Property size (m²)*", 10, 700, 100)
 
-            property_type = st.radio(
-            "Select the property type*",
-            ["House", "Apartment", "Other"],
-        )
-            zip_code = st.text_input("Enter a zip code*", 1000)
+        property_type = st.radio(
+        "Select the property type*",
+        ["House", "Apartment", "Other"],
+    )
+        zip_code = st.text_input("Enter a zip code*", 1000)
 
-            rooms_number = st.number_input(
-            "Choose the number of rooms", value=1, placeholder="Rooms number"
-        )
+        rooms_number = st.number_input(
+        "Choose the number of rooms*", value=1, placeholder="Rooms number"
+    )
+        with st.expander("See optional values"):
             options = ["A+","A", "B", "C", "D", "E", "F", "G"]
-            epc_score = st.selectbox("EPC score", options)
+            epc_score = st.selectbox("EPC score", options, index=None)
 
             options = [ "NEW" , "GOOD" , "TO RENOVATE" , "JUST RENOVATED" , "TO REBUILD"]
-            building_state = st.selectbox("Building state", options)
+            building_state = st.selectbox("Building state", options, index=None)
 
-            equipped_kitchen = st.toggle("Equipped kitchen")
-
-
-        with col2:
             land_area = st.number_input(
-            "", value=None, placeholder="Land area"
+            "Land area", value=None, placeholder=""
         )
             garden_area = st.number_input(
-            "", value=None, placeholder="Garden area"
+            "Garden area", value=None, placeholder=""
         )
             full_address = st.text_input("Enter the full address", "")
 
             terrace_area = st.text_input("Terrace area", "")
 
             options = ["1", "2","3","4"]
-            facades_number = st.selectbox("Number of facades", options)
-
+            facades_number = st.selectbox("Number of facades", options, index=None)
 
             furnished = st.toggle("Furnished")
             open_fire = st.toggle("Open fire")
             terrace = st.toggle("Terrace")
             garden = st.toggle("With garden")
             swimming_pool = st.toggle("With swimming pool")
+            equipped_kitchen = st.toggle("Equipped kitchen")
 
 
 
