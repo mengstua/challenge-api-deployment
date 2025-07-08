@@ -83,7 +83,7 @@ async def predict(data: PropertyData):
     return JSONResponse(
         status_code=200,
         content={
-            "prediction": f"{int(prediction):,d}".replace(",", "."),
+            "prediction": prediction,
             "status_code": 200,
         })
 

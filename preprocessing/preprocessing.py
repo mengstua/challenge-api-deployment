@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 
 pd.set_option('display.max_columns', None)  # Show all columns
+np.set_printoptions(threshold=np.inf)
 
 def encode_fields(df):
     oe2 = OrdinalEncoder(
@@ -99,16 +100,15 @@ def add_region_column(df):
 
 
 def check_required_columns_data(df):
-    print("df", df)
+
     postal_codes_df = pd.read_csv(
         "preprocessing/georef-belgium-postal-codes@public.csv", sep=";"
     )
 
     area = int(df["area"].iloc[0])
     property_type = df["property-type"].iloc[0]
-    zip_code = df["zip-code"].iloc[0]
+    zip_code = int(df["zip-code"].iloc[0])
 
-    print("Area:", area, "Property Type:", property_type, "Zip Code:", zip_code)
     if area <= 0 or area >= 1500:
         raise ValueError("Area must be a positive number and less than 1500.")
     if property_type == "OTHER":

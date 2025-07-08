@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+import catboost
 
 def predict_price(df):
     with open("./model/model.pkl", "rb") as f:
@@ -9,7 +10,4 @@ def predict_price(df):
         print("first row:",first_row)
 
         res = unpickled_model.predict(first_row)[0]
-        # print first 2 decimals
-        res = round(res, 2)
-        print("---------PRED---------", res)
-        return res
+        return f"{int(res):,d}".replace(",", ".")
