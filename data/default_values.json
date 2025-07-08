@@ -1,0 +1,20 @@
+{
+  "haslift": 0,
+  "hasparking": 0,
+  "epcscore_encoded": 3,
+  "buildingcondition_encoded": 2,
+  "latitude": 50.8503,
+  "longitude": 4.3517,
+  "property_type_mapping": {
+    "APARTMENT": 1,
+    "HOUSE": 2,
+    "OTHERS": 3
+  },
+  "building_state_mapping": {
+    "NEW": 1,
+    "GOOD": 2,
+    "JUST_RENOVATED": 3,
+    "TO_RENOVATE": 4,
+    "TO_REBUILD": 5
+  }
+}
