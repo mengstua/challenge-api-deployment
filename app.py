@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from typing import Optional, Literal
@@ -56,6 +57,21 @@ data_format_json =  { #  TO DO: adjust str, bool, etc according to my comments
 
   }
 }
+
+################## To handle errors with incorrectly input variables in the POST method
+
+@app.exception_handler(500) # E.g; "garden" = "FALSE"
+async def internal_exception_handler(request: Request, exc: Exception):
+    errors = exc.errors()
+    formatted_errors = []
+    for error in errors:
+      custom_message = generate_custom_message(error)
+      formatted_errors.append({custom_message})
+    def generate_custom_message(error):
+        return f"Internal Server Error. Check field {error['loc']}. "  
+    return JSONResponse(
+        JSONResponse(status_code=500, content={"errors": f"{formatted_errors}"})
+    )
 
 #################  Process input JSON file
 
