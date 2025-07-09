@@ -1,87 +1,66 @@
 from fastapi import FastAPI
-from typing import Optional, Literal, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional, Literal
+from preporcess.cleaning_data import preprocess
+from predict.prediction import predict  # this function wraps your model's prediction
+import logging
 
-from predict.predict import predict_price
-import pandas as pd
-
+logger = logging.getLogger(__name__)
 app = FastAPI()
 
-
+# Your input model
 class PropertyData(BaseModel):
-  bedroomcount: int # Number of bedrooms
-  habitablesurface: int # Habitable surface area in square meters
-  zip_code: int # Postal code of the property
-  haslift: Optional[bool] = False # Whether the property has a lift
-  hasgarden: Optional[bool] = False # Whether the property has a garden
-  hasswimmingpool: Optional[bool] = False # Whether the property has a swimming pool
-  hasterrace: Optional[bool] = False # Whether the property has a terrace
-  price: Optional[float] = None # Price of the property
-  hasparking: Optional[bool] = False # Whether the property has parking
-  epcscore_encoded: Optional[int] = None # Encoded EPC score
-  buildingcondition_encoded: Optional[int] = None # Encoded building condition
-  region_Brussels: Optional[bool] = False # Whether the property is in Brussels
-  region_Flanders: Optional[bool] = False # Whether the property is in Flanders
-  region_Wallonia: Optional[bool] = False # Whether the property is in Wallonia
-  type_encoded: Optional[Literal['APARTMENT', 'HOUSE', 'OTHERS']] = None # Encoded property type
-  latitude: Optional[float] = None # Latitude of the property
-  longitude: Optional[float] = None # Longitude of the property
-  # Define the fields that will be used for prediction
-  # These fields should match the columns in your DataFrame used for prediction
+    area: int
+    property_type: Literal["APARTMENT", "HOUSE", "OTHERS"] = Field(..., alias="property-type")
+    rooms_number: int = Field(..., alias="rooms-number")
+    zip_code: int = Field(..., alias="zip-code")
+    land_area: Optional[int] = Field(None, alias="land-area")
+    garden: Optional[bool] = None
+    garden_area: Optional[int] = Field(None, alias="garden-area")
+    equipped_kitchen: Optional[bool] = Field(None, alias="equipped-kitchen")
+    full_address: Optional[str] = Field(None, alias="full-address")
+    swimming_pool: Optional[bool] = Field(None, alias="swimming-pool")
+    furnished: Optional[bool] = None
+    open_fire: Optional[bool] = Field(None, alias="open-fire")
+    terrace: Optional[bool] = None
+    terrace_area: Optional[int] = Field(None, alias="terrace-area")
+    facades_number: Optional[int] = Field(None, alias="facades-number")
+    building_state: Optional[
+        Literal["NEW", "GOOD", "TO RENOVATE", "JUST RENOVATED", "TO REBUILD"]
+    ] = Field(None, alias="building-state")
 
-# Temporary DataFrame to hold the data
-df = pd.DataFrame(columns=[
-    'bedroomcount', 'habitablesurface', 'zip_code', 'haslift', 'hasgarden',
-    'hasswimmingpool', 'hasterrace', 'price', 'hasparking', 'epcscore_encoded',
-    'buildingcondition_encoded', 'region_Brussels', 'region_Flanders',
-    'region_Wallonia', 'type_encoded', 'latitude', 'longitude'
-])
+    class Config:
+        validate_by_name = True
 
+class InputData(BaseModel):
+    data: PropertyData
 
+    class Config:
+        validate_by_name = True
 
+class PredictionResult(BaseModel):
+    prediction: Optional[float] = None
+    status_code: int
+    error: Optional[str] = None
 
-@app.get("/")
-async def root():
-    """Route that return 'Alive!' if the server runs."""
-    return {"Status": "Alive!"}
+@app.post("/predict", response_model=PredictionResult)
+async def predict_route(input_data: InputData):
+    try:
+        data_dict = input_data.data.model_dump(by_alias=True)
+        logger.info(f"Raw input: {data_dict}")
 
-@app.get("/predict")
-async def predict_info():
-    return data_format_json
+        preprocessed_data = preprocess(data_dict)
+        prediction_result = predict(preprocessed_data)
 
+        return {
+            "prediction": prediction_result,
+            "status_code": 200
+        }
 
-data_format_json =  {
-  "Format of your JSON input for POST requests:": {
-    "area": "int",
-    "property-type": "APARTMENT | HOUSE | OTHERS",
-    "rooms-number": "int",
-    "zip-code": "int",
-    "land-area (optional)": "int",
-    "garden (optional)": "bool",
-    "garden-area (optional)": "int",
-    "equipped-kitchen (optional)": "bool",
-    "full-address (optional)": "str",
-    "swimming-pool (optional)": "bool",
-    "furnished (optional)": "bool",
-    "open-fire (optional)": "bool",
-    "terrace (optional)": "bool",
-    "terrace-area (optional)": "int",
-    "facades-number (optional)": "int",
-    "building-state (optional)": 
-      "NEW | GOOD | TO RENOVATE | JUST RENOVATED | TO REBUILD"
-  }
-}
+    except ValueError as ve:
+        logger.error(f"Validation error: {ve}")
+        return {"error": str(ve), "status_code": 400}
 
-@app.get("/predict")
-async def dataframe_to_json():
-    # Convert DataFrame to JSON
-    json_data = df.to_dict(orient="records")
-    return JSONResponse(content=json_data)
-
-@app.post("/predict")
-async def predict(data:PropertyData):
-    
-
-    # transorm JSON to df
-    # call predict_price()
-    pass
+    except Exception as e:
+        logger.exception("Unhandled error")
+        return {"error": "Internal server error", "status_code": 500}
