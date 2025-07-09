@@ -136,6 +136,7 @@ def transform_fields(df):
                 "NEW": "AS_NEW",
                 "JUST RENOVATED": "JUST_RENOVATED",
                 "TO REBUILD": "TO_RENOVATE",
+                "TO RENOVATE": "TO_RENOVATE"
             }
         )
     )

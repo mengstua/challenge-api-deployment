@@ -19,12 +19,12 @@ if "show_prediction" not in st.session_state:
         "Select the property type*",
         ["House", "Apartment", "Other"],
     )
-        zip_code = st.text_input("Enter a zip code*", 1000)
+        zip_code = st.text_input("Enter a zip code*")
 
         rooms_number = st.number_input(
         "Choose the number of rooms*", value=1, placeholder="Rooms number"
     )
-        with st.expander("See optional values"):
+        with st.expander("See optional fields"):
             options = ["A+","A", "B", "C", "D", "E", "F", "G"]
             epc_score = st.selectbox("EPC score", options, index=None)
 
