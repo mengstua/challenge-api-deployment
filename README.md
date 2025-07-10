@@ -1,4 +1,4 @@
-# challenge-api-deployment
+# Challenge-api-deployment
 ## Description 
 This project is aimed to developy a python Api to predict the price of Real estate in Belgium using the dataset scraped from ImmoEliza Web. The API is developed using FastAPI deployed in Render and streamlit installation environments.
 
