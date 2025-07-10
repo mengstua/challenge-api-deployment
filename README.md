@@ -45,6 +45,11 @@ use it to predict a property price when the user enters property parameters
     for POST choose json and "raw" form.
     ```
 
+4. **Test remotely:**
+    ```sh
+    Use https://challenge-api-deployment-nadiya.onrender.com/docs  when deployed on Render.
+    ```
+
 ## Algorithm of price prediction
 
 When you go to the main endpoints/fastAPI methods
