@@ -13,10 +13,6 @@ from pydantic import BaseModel
 from prepocessing.preprocessing import Immo_Preprocessing #####!!!!! spelling error: preposessing
 from predict.predict_Nad import Predict_Nad
 
-
-#app = FastAPI()
-
-
 # Set port to the env variable PORT to make it easy to choose the port on the server
 # If the Port env variable is not set, use port 8000
 PORT = os.environ.get("PORT", 8000)
@@ -25,32 +21,13 @@ app = FastAPI(port=PORT)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler("myapp.log")
+formatter = logging.Formatter(
+    '%(asctime)s %(levelname)s %(path)s %(method)s %(client_host)s %(message)s'
+)
+file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-################## To handle errors with incorrectly input variables in the POST method
-
-# Middleware to catch and log all unhandled exceptions (like 500 errors)
-@app.middleware("http")
-async def log_exceptions_middleware(request: Request, call_next):
-    try:
-        return await call_next(request)
-    except Exception as exc:
-        logger.error(  # Prints in the log file
-            "Unhandled exception encountered",
-            exc_info=True,  # This writes the full traceback to the log file
-            # extra={
-            #     "path": request.url.path,
-            #     "method": request.method,
-            #     "client_host": request.client.host
-            # }
-        )
-        # Print on screen
-        return JSONResponse(
-            status_code=500,
-            content={"500 error detail ": "Internal Server Error"}
-        )
-     
-##########################""    
+########################## Some health-checking API-s    
     
 @app.get("/check_LoggingStatus")
 async def root():
@@ -62,6 +39,55 @@ async def root():
 async def root():
     """Route that return 'Alive!' if the server runs."""
     return {"Status": "Alive!"}
+
+     
+################## To handle errors of parameters in the json request when using /predict_WithBetterValidation
+
+@app.exception_handler(RequestValidationError) 
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors=exc.args[0]
+    formatted_errors = []
+
+    def generate_custom_message(error, field):
+        # Customize messages based on error type
+        if error["type"] == "missing":
+            return f" ---You forgot to input: {field}."
+        # Add more cases as needed
+        return f" ---Wrong type of input for: {field} - {error['msg']}"  
+          
+    for error in errors:
+      field = error["loc"]
+      custom_message = generate_custom_message(error, field)
+      formatted_errors.append(custom_message)
+    
+    return JSONResponse(
+        status_code=422,
+        #content=jsonable_encoder({"errors": formatted_errors, "body": exc.body, "Detail": exc.args}),
+        content=jsonable_encoder({"Errors": formatted_errors}),
+    )
+
+################## To handle all other errors - output on screen  (json responcse) and in the logger (full stacktrace)
+
+# Middleware to catch and log all unhandled exceptions (like 500 errors)
+@app.middleware("http")
+async def log_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.error(  # Prints in the log file
+            "Unhandled exception encountered",
+            exc_info=True,  # This writes the full traceback to the log file
+            extra={
+                 "path": request.url.path,
+                 "method": request.method,
+                 "client_host": request.client.host
+            }
+        )
+        # Print on screen
+        return JSONResponse(
+            status_code=500,
+            content={"500 error detail ": "Internal Server Error"}
+        )
 
 ########### Give instructions about input JSON file
 
@@ -99,30 +125,6 @@ data_format_json =  { #  TO DO: adjust str, bool, etc according to my comments
   }
 }
 
-################## Will result from errors in http://127.0.0.1:8000/predict_WithBetterValidation
-
-@app.exception_handler(RequestValidationError) 
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors=exc.args[0]
-    formatted_errors = []
-
-    def generate_custom_message(error, field):
-        # Customize messages based on error type
-        if error["type"] == "missing":
-            return f" ---You forgot to input: {field}."
-        # Add more cases as needed
-        return f" ---Wrong type of input for: {field} - {error['msg']}"  
-          
-    for error in errors:
-      field = error["loc"]
-      custom_message = generate_custom_message(error, field)
-      formatted_errors.append(custom_message)
-    
-    return JSONResponse(
-        status_code=422,
-        #content=jsonable_encoder({"errors": formatted_errors, "body": exc.body, "Detail": exc.args}),
-        content=jsonable_encoder({"Errors": formatted_errors}),
-    )
 #################  Process input JSON file with validation of types ####################
 
 # Needed for validation of input data and renaming is needed because can't have dashes in the variables' names
@@ -228,7 +230,6 @@ async def predict(request: Request):
   json_data["subtype"] = "subtype" # adds field subtype, it will be dropped in preprocessing.py, but I don't want to alter it (preprocessing.py)
   json_data["locality"] = "locality" # adds field locality, it will be dropped in preprocessing.py, but I don't want to alter it (preprocessing.py)
   
-  #data = json.loads(json_data)
   df = pd.DataFrame([json_data])
 
   # Drop columns according to preprocessing.py
@@ -277,7 +278,7 @@ async def predict(request: Request):
     if col not in immo_Preprocessing.df.columns:
        immo_Preprocessing.df[col] = 0
 
-  #*** Caterina- did you normalized your df before doing modeling? If yes, we need to normalise our input then! But what are norm. coeff-s???
+  #***  Note: here we use catboost model which does not require normalisation, so we are not doing this step here.
 
   price_pred=Predict_Nad.predict_price(immo_Preprocessing.df)
 

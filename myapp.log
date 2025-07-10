@@ -1,0 +1,67 @@
+2025-07-09 00:50:38,186 ERROR /predict POST 127.0.0.1 Unhandled exception encountered
+Traceback (most recent call last):
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\middleware\base.py", line 148, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\app.py", line 42, in log_exceptions_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\middleware\base.py", line 156, in call_next
+    raise app_exc
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\middleware\base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\app.py", line 278, in predict
+    immo_Preprocessing.latitude_longitude_columns('prepocessing//data//georef-belgium-postal-codes@public.csv')
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\prepocessing\preprocessing.py", line 164, in latitude_longitude_columns
+    self.df[['latitude', 'longitude']] = self.df['geocode'].str.split(',', expand=True)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\pandas\core\frame.py", line 4304, in __setitem__
+    self._setitem_array(key, value)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\pandas\core\frame.py", line 4346, in _setitem_array
+    check_key_length(self.columns, key, value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\n2703\Documents\BeCodeAIMay2025\projects\challenge-api-deployment\env\Lib\site-packages\pandas\core\indexers\utils.py", line 390, in check_key_length
+    raise ValueError("Columns must be same length as key")
+ValueError: Columns must be same length as key
+
+""""""""""""""""""""""""""""""""""""
+
