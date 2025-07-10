@@ -114,7 +114,7 @@ The API is deployed at:
 ### Streamlit
 
 The Streamlit app is deployed at:  
-[https://challenge-api-deployment-hj2rduzqiwpbuehni9usz2.streamlit.app/](https://challenge-api-deployment-hj2rduzqiwpbuehni9usz2.streamlit.app/)
+[https://caterinamennito-challenge-api-deployment-streamlit-app-vqlqgu.streamlit.app/](https://caterinamennito-challenge-api-deployment-streamlit-app-vqlqgu.streamlit.app/)
 
 ---
 
