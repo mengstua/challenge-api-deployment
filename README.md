@@ -87,4 +87,30 @@ in the app.py
 | `/predict`    | POST   | Returns price prediction for input json request if no errors, otherwise returns "Internal Server Error" and prints stacktrace in the log file.      |
 | `/predict_WithBetterValidation`    | POST   | Returns price prediction for input json request if no errors, otherwise it returns a customised message about the erroneous parameter. In case other errors occur, it returns  "Internal Server Error" and prints stacktrace in the log file.      |
 
+### Input Format
 
+POST `/predict`, `/predict_WithBetterValidation` expect the following JSON-type input:
+
+{
+    "area": "50",
+    "property-type": "APARTMENT",
+    "rooms-number": 3,
+    "zip-code": 1080,
+    "land-area": 0,
+    "garden": 1, 
+    "garden-area": 0,
+    "equipped-kitchen": "FALSE",
+    "full-address": "Mettewie 156",
+    "swimming-pool": "0",
+    "furnished": "0",
+    "open-fire": "0",
+    "terrace": false,
+    "terrace-area": 10,
+    "facades-number": 2,
+    "building-state": "GOOD",
+    "lift": "1",
+    "parkingcountindoor" : 0,
+    "parkingcountoutdoor" : 0,
+    "province" : "Brussels",
+    "epcscore" : "C"
+  }
